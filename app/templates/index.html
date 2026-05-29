@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <title>DJ Music System</title>
+
+    <style>
+    *{
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: Arial, sans-serif;
+        background: #121212;
+        color: white;
+    }
+
+    header {
+        background: #1e1e1e;
+        padding: 20px;
+        text-align: center;
+        border-bottom: 2px solid #ff9800;
+    }
+
+    .container {
+        max-width: 1000px;
+        margin: 30px auto;
+        padding: 20px;
+    }
+
+    .card {
+        background: #1f1f1f;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 10px;
+    }
+
+    h1 {
+        color: #ff9800;
+    }
+
+    h2 {
+        margin-bottom: 15px;
+    }
+
+    input {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 10px;
+        border: none;
+        border-radius: 5px;
+    }
+
+    button {
+        background: #ff9800;
+        color: black;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    button:hover {
+        background: #ffa726;
+    }
+
+    #status {
+        margin-top: 10px;
+        color: lightgreen;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    table th {
+        background: #333;
+    }
+
+    table th,
+    table td {
+        padding: 12px;
+        border: 1px solid #444;
+        text-align: left;
+    }
+    </style>
+
+</head>
+
+    <body>
+
+        <header>
+            <h1>🎧 DJ Music System</h1>
+            <p>Gerenciamento de músicas e playlists</p>
+        </header>
+
+<div class="container">
+
+    <div class="card">
+        <h2>Cadastrar Usuário</h2>
+
+        <form id="registerForm" method="POST">
+            <input type="email" id="registerEmail" placeholder="E-mail" required>
+
+            <input type="password"
+                   id="registerPassword"
+                   placeholder="Senha"
+                   required>
+
+            <button type="submit">
+                Cadastrar
+            </button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>Login</h2>
+
+        <form id="loginForm" method="POST">
+
+            <input type="email"
+                   id="loginEmail"
+                   placeholder="E-mail"
+                   required>
+
+            <input type="password"
+                   id="loginPassword"
+                   placeholder="Senha"
+                   required>
+
+            <button type="submit">
+                Entrar
+            </button>
+
+        </form>
+
+        <p id="status">
+            Não autenticado
+        </p>
+    </div>
+
+    <div class="card">
+        <h2>Catálogo de Músicas</h2>
+
+        <button id="getMusicasBtn">
+            Carregar Músicas
+        </button>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Título</th>
+                    <th>Artista</th>
+                </tr>
+            </thead>
+
+            <tbody id="musicasList">
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+    <script>
+
+        document.getElementById('registerForm')
+        .addEventListener('submit', async (e) => {
+
+            e.preventDefault();
+
+            const email =
+                document.getElementById('registerEmail').value;
+
+            const password =
+                document.getElementById('registerPassword').value;
+
+            const response = await fetch('/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email,
+                    password
+                    
+                })
+            });
+
+            if(response.ok){
+                alert('Usuário cadastrado!');
+            }else{
+                alert('Erro ao cadastrar');
+            }
+
+        });
+
+        document.getElementById('loginForm')
+        .addEventListener('submit', async (e) => {
+
+            e.preventDefault();
+
+            const email =
+                document.getElementById('loginEmail').value;
+
+            const password =
+                document.getElementById('loginPassword').value;
+
+            const response = await fetch('/login', {
+
+                method: 'POST',
+
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+
+                body: JSON.stringify({
+                    email,
+                    password
+                })
+            });
+
+            const data = await response.json();
+
+            if(response.ok){
+
+                localStorage.setItem(
+                    'token',
+                    data.token
+                );
+
+                document.getElementById('status')
+                    .innerText =
+                    '✅ Usuário autenticado';
+
+            }else{
+
+                alert('Login inválido');
+
+            }
+
+        });
+
+        document.getElementById('getMusicasBtn')
+        .addEventListener('click', async () => {
+
+            const token =
+                localStorage.getItem('token');
+
+            if(!token){
+
+                alert('Faça login primeiro');
+
+                return;
+            }
+
+            const response =
+                await fetch('/musicas', {
+
+                headers: {
+                    Authorization:
+                    `Bearer ${token}`
+                }
+
+            });
+
+            const musicas =
+                await response.json();
+
+            const tbody =
+                document.getElementById(
+                    'musicasList'
+                );
+
+            tbody.innerHTML = '';
+
+            musicas.forEach(musica => {
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${musica.id}</td>
+                        <td>${musica.titulo}</td>
+                        <td>${musica.artista}</td>
+                    </tr>
+                `;
+
+            });
+
+        });
+        </script>
+
+    </body>
+</html>
