@@ -10,3 +10,8 @@ __pycache__/
 # Variáveis de ambiente
 .musica/
 .env
+
+# Ambientes virtuais
+.venv/
+venv/
+.test-venv/

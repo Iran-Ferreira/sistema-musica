@@ -187,8 +187,20 @@ venv\Scripts\activate
 ### Instalar Dependências
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
+
+O arquivo de desenvolvimento instala as dependências da aplicação e o Pytest.
+
+### Executar os Testes
+
+```bash
+pytest -q
+```
+
+A suíte cobre os serviços de autenticação e músicas, as rotas HTTP (incluindo
+acesso JWT ao catálogo) e a renderização dos formulários e controles da página
+principal. Os dados de usuários são limpos entre os testes.
 
 ---
 
@@ -218,17 +230,28 @@ http://127.0.0.1:5000
 
 ## ☁️ Deploy
 
-O projeto está preparado para deploy em plataformas como:
+O projeto pode ser hospedado no Render. Configure no serviço:
 
-* Render
-* Railway
-* Fly.io
+* Build Command: `pip install -r requirements.txt`
+* Start Command: `gunicorn run:app`
+* Variável de ambiente `JWT_SECRET_KEY` com uma chave secreta forte
 
-### Comando de Inicialização
+### Integração Contínua e Deploy Automático
 
-```bash
-gunicorn run:app
-```
+O workflow `.github/workflows/ci-cd.yml` executa em pull requests e pushes para
+`main` ou `master`. Ele instala as dependências de desenvolvimento e roda
+`pytest -q`. Em push para essas branches, o deploy no Render é acionado somente
+se os testes passarem.
+
+Para habilitar o deploy automático:
+
+1. No Render, abra o serviço web, crie um Deploy Hook e copie a URL gerada.
+2. No GitHub, abra `Settings > Secrets and variables > Actions > New repository secret`.
+3. Crie o secret `RENDER_DEPLOY_HOOK_URL` e cole nele a URL do Deploy Hook.
+4. Envie as alterações para a branch principal (`main` ou `master`). O resultado
+  dos testes e do deploy ficará disponível na aba `Actions` do GitHub.
+
+Não coloque a URL do Deploy Hook nem a chave JWT no código ou em arquivos versionados.
 
 ---
 
